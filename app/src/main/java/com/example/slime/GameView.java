@@ -57,6 +57,8 @@ public class GameView extends SurfaceView
     private float scaleX = 1f, scaleY = 1f;
 
     private SpriteSheet spriteSheet;
+    public static Bitmap platformsBmp;
+    public static Bitmap afterbreakBmp;
     private Paint bgPaint;
     private Paint scorePaint;
     private Paint starPaint;
@@ -110,6 +112,12 @@ public class GameView extends SurfaceView
     public void surfaceCreated(SurfaceHolder holder) {
         Bitmap raw = BitmapFactory.decodeResource(getResources(), R.drawable.slimejump);
         spriteSheet = new SpriteSheet(raw);
+        
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inScaled = false;
+        
+        platformsBmp = BitmapFactory.decodeResource(getResources(), R.drawable.platforms, opts);
+        afterbreakBmp = BitmapFactory.decodeResource(getResources(), R.drawable.afterbreak, opts);
 
         startGame();
 

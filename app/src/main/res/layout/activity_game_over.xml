@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#CC0A0A2E"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/game_over"
+        android:textColor="@color/error_red"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        android:shadowColor="#000000"
+        android:shadowDx="0"
+        android:shadowDy="4"
+        android:shadowRadius="8"
+        android:layout_marginBottom="32dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#4400AABB"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center"
+        android:layout_marginBottom="32dp">
+
+        <TextView
+            android:id="@+id/tvCurrentScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/slime_text"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:id="@+id/tvBestScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/gold"
+            android:textSize="18sp"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvSignInPrompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sign_in_to_save"
+        android:textColor="@color/slime_accent"
+        android:textSize="14sp"
+        android:padding="8dp"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btnPlayAgain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/slime_button"
+        android:text="Play Again"
+        android:textColor="@color/slime_text"
+        android:textSize="18sp"/>
+
+    <Button
+        android:id="@+id/btnMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/slime_blue_light"
+        android:text="Main Menu"
+        android:textColor="@color/slime_text"
+        android:textSize="18sp"/>
+
+</LinearLayout>

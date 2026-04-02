@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 
-public class MainActivity extends Activity {
+import android.content.Intent;
+
+public class GameActivity extends Activity implements GameView.GameOverListener {
 
     private GameView gameView;
 
@@ -21,7 +23,18 @@ public class MainActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         gameView = new GameView(this);
+        gameView.setGameOverListener(this);
         setContentView(gameView);
+    }
+
+    @Override
+    public void onGameOver(int score) {
+        runOnUiThread(() -> {
+            Intent intent = new Intent(this, GameOverActivity.class);
+            intent.putExtra("SCORE", score);
+            startActivity(intent);
+            finish();
+        });
     }
 
     @Override

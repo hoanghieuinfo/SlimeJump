@@ -16,7 +16,6 @@ public class GameActivity extends Activity implements GameView.GameOverListener 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Full-screen, no title bar
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -28,12 +27,12 @@ public class GameActivity extends Activity implements GameView.GameOverListener 
         if (themeStr != null) {
             try {
                 theme = BackgroundTheme.valueOf(themeStr);
-            } catch (Exception e) {
-                // fallback to DAY
-            }
+            } catch (Exception ignored) { }
         }
 
-        gameView = new GameView(this, theme);
+        boolean hasShield = getIntent().getBooleanExtra("HAS_SHIELD", false);
+
+        gameView = new GameView(this, theme, hasShield);
         gameView.setGameOverListener(this);
         setContentView(gameView);
     }

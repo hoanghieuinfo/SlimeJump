@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -27,6 +27,7 @@ public class LeaderboardActivity extends AppCompatActivity {
     private TextView tvEmpty;
     private LeaderboardAdapter adapter;
     private List<ScoreEntry> scoreList;
+    private ListenerRegistration listenerRegistration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,43 +39,56 @@ public class LeaderboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_leaderboard);
 
         recyclerView = findViewById(R.id.recyclerView);
-        tvEmpty = findViewById(R.id.tvEmpty);
+        tvEmpty      = findViewById(R.id.tvEmpty);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         scoreList = new ArrayList<>();
-        adapter = new LeaderboardAdapter(scoreList);
+        adapter   = new LeaderboardAdapter(scoreList);
         recyclerView.setAdapter(adapter);
-
-        loadScores();
     }
 
-    private void loadScores() {
+    @Override
+    protected void onStart() {
+        super.onStart();
+        subscribeToLeaderboard();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (listenerRegistration != null) {
+            listenerRegistration.remove();
+            listenerRegistration = null;
+        }
+    }
+
+    private void subscribeToLeaderboard() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        
-        db.collection("leaderboard")
+
+        listenerRegistration = db.collection("leaderboard")
                 .orderBy("score", Query.Direction.DESCENDING)
                 .limit(50)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        scoreList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            long score = document.getLong("score") != null ? document.getLong("score") : 0;
-                            String name = document.getString("displayName");
-                            if (name == null) name = "Unknown";
-                            
-                            scoreList.add(new ScoreEntry(name, score));
-                        }
-                        adapter.notifyDataSetChanged();
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null || snapshots == null) {
+                        tvEmpty.setText(getString(R.string.leaderboard_load_error));
+                        tvEmpty.setVisibility(View.VISIBLE);
+                        return;
+                    }
 
-                        if (scoreList.isEmpty()) {
-                            tvEmpty.setText("No scores found!");
-                        } else {
-                            tvEmpty.setVisibility(View.GONE);
-                        }
+                    scoreList.clear();
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        long score  = doc.getLong("score") != null ? doc.getLong("score") : 0;
+                        String name = doc.getString("displayName");
+                        if (name == null) name = "Unknown";
+                        scoreList.add(new ScoreEntry(name, score));
+                    }
+                    adapter.notifyDataSetChanged();
+
+                    if (scoreList.isEmpty()) {
+                        tvEmpty.setText(getString(R.string.leaderboard_empty));
+                        tvEmpty.setVisibility(View.VISIBLE);
                     } else {
-                        tvEmpty.setText("Failed to load: " + task.getException().getMessage());
-                        Toast.makeText(this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        tvEmpty.setVisibility(View.GONE);
                     }
                 });
     }
@@ -84,7 +98,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         String name;
         long score;
         ScoreEntry(String name, long score) {
-            this.name = name;
+            this.name  = name;
             this.score = score;
         }
     }
@@ -118,8 +132,8 @@ public class LeaderboardActivity extends AppCompatActivity {
             TextView tvRank, tvName, tvScore;
             ViewHolder(View v) {
                 super(v);
-                tvRank = v.findViewById(R.id.tvRank);
-                tvName = v.findViewById(R.id.tvName);
+                tvRank  = v.findViewById(R.id.tvRank);
+                tvName  = v.findViewById(R.id.tvName);
                 tvScore = v.findViewById(R.id.tvScore);
             }
         }

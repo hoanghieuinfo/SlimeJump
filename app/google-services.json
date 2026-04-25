@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "676751570058",
+    "project_id": "slimejump-7b6df",
+    "storage_bucket": "slimejump-7b6df.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676751570058:android:efaf4d77320d40b940a973",
+        "android_client_info": {
+          "package_name": "com.example.slime"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADnN23GMYBQRPPrPwBhrnTZDcsv2TUccA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

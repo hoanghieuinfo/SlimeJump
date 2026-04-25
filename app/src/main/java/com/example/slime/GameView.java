@@ -24,8 +24,13 @@ import com.example.slime.entities.BackgroundTheme;
 import com.example.slime.entities.SlimeState;
 import com.example.slime.platform.BouncyPlatform;
 import com.example.slime.platform.DisappearingPlatform;
+import com.example.slime.platform.FakePlatform;
+import com.example.slime.platform.FallingPlatform;
+import com.example.slime.platform.MovingEnemy;
 import com.example.slime.platform.MovingPlatform;
 import com.example.slime.platform.Platform;
+import com.example.slime.platform.SpikePlatform;
+import com.example.slime.platform.SpringTrapPlatform;
 import com.example.slime.platform.StandardPlatform;
 
 import java.util.ArrayList;
@@ -193,7 +198,13 @@ public class GameView extends SurfaceView
     }
 
     private void updatePlaying() {
-        slime.dx = -sensorX * SENSOR_SPEED;
+        // SpringTrap temporarily overrides sensor-driven steering
+        if (slime.forceDxTicks > 0) {
+            slime.dx = slime.forceDx;
+            slime.forceDxTicks--;
+        } else {
+            slime.dx = -sensorX * SENSOR_SPEED;
+        }
         slime.updateFacing();
         slime.x += slime.dx;
         wrapSlime();
@@ -219,11 +230,19 @@ public class GameView extends SurfaceView
         if (slime.isFalling() && slime.getState() == SlimeState.FALLING) {
             for (Platform p : platforms) {
                 if (p.canBounce() && slimeLandsOn(p)) {
-                    slime.dy = p.onBounce();  
-                    score   += 10;            
-                    slime.setState(SlimeState.LANDING); 
+                    p.applyBounce(slime);
+                    score += 10;
+                    slime.setState(SlimeState.LANDING);
                     break;
                 }
+            }
+        }
+
+        // Lethal hazard check (SpikePlatform, MovingEnemy)
+        for (Platform p : platforms) {
+            if (p.isLethal() && slimeTouches(p)) {
+                gameOver();
+                return;
             }
         }
 
@@ -238,6 +257,17 @@ public class GameView extends SurfaceView
         if (slime.y > GH) {
             gameOver();
         }
+    }
+
+    // Full bounding-box overlap used for lethal hazards (spikes, enemies)
+    private boolean slimeTouches(Platform p) {
+        final float margin = 8f;
+        float sl = slime.x + margin;
+        float sr = slime.x + Slime.SIZE - margin;
+        float st = slime.y + margin;
+        float sb = slime.y + Slime.SIZE - margin;
+        RectF pb = p.getBounds();
+        return sr > pb.left && sl < pb.right && sb > pb.top && st < pb.bottom;
     }
 
     private boolean slimeLandsOn(Platform p) {
@@ -275,14 +305,50 @@ public class GameView extends SurfaceView
         }
     }
 
+    private static final float ENEMY_W = 52f;
+    private static final float ENEMY_H = 28f;
+
     private void spawnPlatform(float y) {
-        float x = rng.nextFloat() * (GW - PW);
-        int type = rng.nextInt(10);
+        int type = rng.nextInt(100);
         Platform p;
-        if (type < 6)      p = new StandardPlatform   (x, y, PW, PH);
-        else if (type < 8) p = new DisappearingPlatform(x, y, PW, PH);
-        else if (type < 9) p = new BouncyPlatform      (x, y, PW, PH);
-        else               p = new MovingPlatform      (x, y, PW, PH);
+        // Slot distribution (total = 100):
+        // 0-44   StandardPlatform   45%
+        // 45-54  DisappearingPlatform 10%
+        // 55-64  BouncyPlatform     10%
+        // 65-74  MovingPlatform     10%
+        // 75-82  FallingPlatform     8%
+        // 83-88  FakePlatform        6%
+        // 89-93  SpikePlatform       5%
+        // 94-97  MovingEnemy         4%
+        // 98-99  SpringTrapPlatform  2%
+        if (type < 45) {
+            float x = rng.nextFloat() * (GW - PW);
+            p = new StandardPlatform(x, y, PW, PH);
+        } else if (type < 55) {
+            float x = rng.nextFloat() * (GW - PW);
+            p = new DisappearingPlatform(x, y, PW, PH);
+        } else if (type < 65) {
+            float x = rng.nextFloat() * (GW - PW);
+            p = new BouncyPlatform(x, y, PW, PH);
+        } else if (type < 75) {
+            float x = rng.nextFloat() * (GW - PW);
+            p = new MovingPlatform(x, y, PW, PH);
+        } else if (type < 83) {
+            float x = rng.nextFloat() * (GW - PW);
+            p = new FallingPlatform(x, y, PW, PH);
+        } else if (type < 89) {
+            float x = rng.nextFloat() * (GW - PW);
+            p = new FakePlatform(x, y, PW, PH);
+        } else if (type < 94) {
+            float x = rng.nextFloat() * (GW - PW);
+            p = new SpikePlatform(x, y, PW, PH);
+        } else if (type < 98) {
+            float x = rng.nextFloat() * (GW - ENEMY_W);
+            p = new MovingEnemy(x, y, ENEMY_W, ENEMY_H);
+        } else {
+            float x = rng.nextFloat() * (GW - PW);
+            p = new SpringTrapPlatform(x, y, PW, PH);
+        }
         platforms.add(p);
     }
 

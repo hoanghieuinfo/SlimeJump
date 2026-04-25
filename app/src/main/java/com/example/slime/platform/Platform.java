@@ -3,9 +3,8 @@ package com.example.slime.platform;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 
-/**
- * Abstract base class for all platform types.
- */
+import com.example.slime.Slime;
+
 public abstract class Platform {
 
     protected float x, y;
@@ -39,6 +38,17 @@ public abstract class Platform {
 
     /** Whether the slime can currently collide with this platform. */
     public boolean canBounce() { return active; }
+
+    /** Whether touching this platform kills the slime. */
+    public boolean isLethal() { return false; }
+
+    /**
+     * Apply bounce effect to slime. Override for special behavior (e.g. SpringTrap).
+     * Default: set slime.dy from onBounce().
+     */
+    public void applyBounce(Slime slime) {
+        slime.dy = onBounce();
+    }
 
     /** Scroll platform downward by delta logical units. */
     public void scrollDown(float delta) { y += delta; }

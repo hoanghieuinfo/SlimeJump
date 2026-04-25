@@ -67,6 +67,10 @@ public class Slime {
     public float dx;     // horizontal velocity (units/frame)
     public float dy;     // vertical   velocity (units/frame, positive = down)
 
+    // Used by SpringTrapPlatform to override sensor-driven dx temporarily
+    public float forceDx     = 0f;
+    public int   forceDxTicks = 0;
+
     // ── Internal animation state ──────────────────────────────────────────────
     private SlimeState state    = SlimeState.IDLE;
     private int        frameIdx = 0;

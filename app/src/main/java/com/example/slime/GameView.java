@@ -21,17 +21,14 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 
 import com.example.slime.entities.BackgroundTheme;
+import com.example.slime.entities.PowerUpType;
 import com.example.slime.entities.SlimeState;
 import com.example.slime.platform.BouncyPlatform;
 import com.example.slime.platform.DisappearingPlatform;
-import com.example.slime.platform.FakePlatform;
-import com.example.slime.platform.FallingPlatform;
-import com.example.slime.platform.MovingEnemy;
 import com.example.slime.platform.MovingPlatform;
 import com.example.slime.platform.Platform;
-import com.example.slime.platform.SpikePlatform;
-import com.example.slime.platform.SpringTrapPlatform;
 import com.example.slime.platform.StandardPlatform;
+import com.example.slime.powerups.PowerUp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +40,13 @@ public class GameView extends SurfaceView
     private static final float GW = 400f;   
     private static final float GH = 700f;   
 
-    private static final float GRAVITY   = 0.20f;   
-    private static final float INITIAL_DY= -10f;    
+    // Variable gravity: lighter while rising for longer hang time,
+    // heavier while falling for a snappier, more satisfying descent.
+    private static final float GRAVITY_RISE   = 0.18f;
+    private static final float GRAVITY_FALL   = 0.26f;
+    // Terminal velocity cap — prevents tunneling past thin platforms at high speeds.
+    private static final float MAX_FALL_SPEED = 13f;
+    private static final float INITIAL_DY     = -10f;
     private static final float PW = 68f;   
     private static final float PH = 14f;   
     private static final float SPACING = 80f; 
@@ -58,10 +60,23 @@ public class GameView extends SurfaceView
 
     private Slime slime;
     private final List<Platform> platforms = new ArrayList<>();
+    private final List<PowerUp> powerUps = new ArrayList<>();
     private final Random rng = new Random();
 
+    // Power-up drop chance per platform spawn (out of 100).
+    private static final int POWERUP_CHANCE_PCT = 8;
+    // Jetpack gives a single massive upward impulse.
+    private static final float JETPACK_BOOST_DY = -28f;
+    // Multiplier lasts 10 seconds at ~60 fps.
+    private static final int MULTIPLIER_DURATION_TICKS = 600;
+    // Shield bounces the slime back up when it would otherwise fall out.
+    private static final float SHIELD_REBOUND_DY = -18f;
+
+    private int shieldCharges = 0;
+    private int multiplierTicksLeft = 0;
+
     private int score = 0;
-    private float sensorX = 0f;   
+    private float sensorX = 0f;
     private SensorManager sensorManager;
     private float scaleX = 1f, scaleY = 1f;
 
@@ -173,6 +188,9 @@ public class GameView extends SurfaceView
 
     private void startGame() {
         platforms.clear();
+        powerUps.clear();
+        shieldCharges = 0;
+        multiplierTicksLeft = 0;
         score = 0;
         gameState = State.PLAYING;
 
@@ -198,18 +216,14 @@ public class GameView extends SurfaceView
     }
 
     private void updatePlaying() {
-        // SpringTrap temporarily overrides sensor-driven steering
-        if (slime.forceDxTicks > 0) {
-            slime.dx = slime.forceDx;
-            slime.forceDxTicks--;
-        } else {
-            slime.dx = -sensorX * SENSOR_SPEED;
-        }
+        slime.dx = -sensorX * SENSOR_SPEED;
         slime.updateFacing();
         slime.x += slime.dx;
         wrapSlime();
 
-        slime.dy += GRAVITY;
+        float g = slime.dy < 0f ? GRAVITY_RISE : GRAVITY_FALL;
+        slime.dy += g;
+        if (slime.dy > MAX_FALL_SPEED) slime.dy = MAX_FALL_SPEED;
 
         float newY = slime.y + slime.dy;
         float midY = GH / 2f;
@@ -217,12 +231,13 @@ public class GameView extends SurfaceView
         if (newY < midY) {
             float excess = midY - newY;
             slime.y = midY;
-            Platform lowest = null;
             for (Platform p : platforms) {
                 p.scrollDown(excess);
-                if (lowest == null || p.getY() > lowest.getY()) lowest = p;
             }
-            score += (int)(excess / 5f);
+            for (PowerUp pu : powerUps) {
+                pu.scrollDown(excess);
+            }
+            score += applyMultiplier((int)(excess / 5f));
         } else {
             slime.y = newY;
         }
@@ -230,44 +245,69 @@ public class GameView extends SurfaceView
         if (slime.isFalling() && slime.getState() == SlimeState.FALLING) {
             for (Platform p : platforms) {
                 if (p.canBounce() && slimeLandsOn(p)) {
-                    p.applyBounce(slime);
-                    score += 10;
+                    slime.dy = p.onBounce();
+                    score   += applyMultiplier(10);
                     slime.setState(SlimeState.LANDING);
                     break;
                 }
             }
         }
 
-        // Lethal hazard check (SpikePlatform, MovingEnemy)
-        for (Platform p : platforms) {
-            if (p.isLethal() && slimeTouches(p)) {
-                gameOver();
-                return;
-            }
-        }
+        checkPowerUpPickups();
 
         slime.updateAnimation();
 
         for (Platform p : platforms) {
             p.update(GW);
         }
+        for (PowerUp pu : powerUps) {
+            pu.update();
+        }
+
+        if (multiplierTicksLeft > 0) multiplierTicksLeft--;
 
         recycleAndGenerate();
 
         if (slime.y > GH) {
-            gameOver();
+            if (shieldCharges > 0) {
+                shieldCharges--;
+                slime.y = GH / 2f;
+                slime.dy = SHIELD_REBOUND_DY;
+                slime.setState(SlimeState.LAUNCH);
+            } else {
+                gameOver();
+            }
         }
     }
 
-    // Full bounding-box overlap used for lethal hazards (spikes, enemies)
-    private boolean slimeTouches(Platform p) {
-        final float margin = 8f;
-        float sl = slime.x + margin;
-        float sr = slime.x + Slime.SIZE - margin;
-        float st = slime.y + margin;
-        float sb = slime.y + Slime.SIZE - margin;
-        RectF pb = p.getBounds();
-        return sr > pb.left && sl < pb.right && sb > pb.top && st < pb.bottom;
+    private int applyMultiplier(int base) {
+        return multiplierTicksLeft > 0 ? base * 2 : base;
+    }
+
+    private void checkPowerUpPickups() {
+        RectF slimeBounds = slime.getBounds();
+        for (PowerUp pu : powerUps) {
+            if (pu.isCollected()) continue;
+            if (RectF.intersects(slimeBounds, pu.getBounds())) {
+                applyPowerUp(pu.getType());
+                pu.collect();
+            }
+        }
+    }
+
+    private void applyPowerUp(PowerUpType type) {
+        switch (type) {
+            case JETPACK:
+                slime.dy = JETPACK_BOOST_DY;
+                slime.setState(SlimeState.LAUNCH);
+                break;
+            case SHIELD:
+                shieldCharges++;
+                break;
+            case MULTIPLIER:
+                multiplierTicksLeft = MULTIPLIER_DURATION_TICKS;
+                break;
+        }
     }
 
     private boolean slimeLandsOn(Platform p) {
@@ -278,7 +318,7 @@ public class GameView extends SurfaceView
         float pl = p.getX();
         float pr = p.getX() + p.getW();
 
-        return sb >= pt && sb <= pt + p.getH() + Math.abs(slime.dy) + 2f
+        return sb >= pt && sb <= pt + p.getH() + Math.abs(slime.dy) + 4f
                 && sr > pl && sl < pr;
     }
 
@@ -303,53 +343,42 @@ public class GameView extends SurfaceView
             highestY -= SPACING;
             spawnPlatform(highestY);
         }
+
+        // Prune off-screen / collected power-ups.
+        List<PowerUp> puRemove = new ArrayList<>();
+        for (PowerUp pu : powerUps) {
+            if (pu.isCollected() || pu.getY() > GH + 20f) puRemove.add(pu);
+        }
+        powerUps.removeAll(puRemove);
     }
 
-    private static final float ENEMY_W = 52f;
-    private static final float ENEMY_H = 28f;
-
     private void spawnPlatform(float y) {
-        int type = rng.nextInt(100);
+        float x = rng.nextFloat() * (GW - PW);
+        int type = rng.nextInt(10);
         Platform p;
-        // Slot distribution (total = 100):
-        // 0-44   StandardPlatform   45%
-        // 45-54  DisappearingPlatform 10%
-        // 55-64  BouncyPlatform     10%
-        // 65-74  MovingPlatform     10%
-        // 75-82  FallingPlatform     8%
-        // 83-88  FakePlatform        6%
-        // 89-93  SpikePlatform       5%
-        // 94-97  MovingEnemy         4%
-        // 98-99  SpringTrapPlatform  2%
-        if (type < 45) {
-            float x = rng.nextFloat() * (GW - PW);
-            p = new StandardPlatform(x, y, PW, PH);
-        } else if (type < 55) {
-            float x = rng.nextFloat() * (GW - PW);
-            p = new DisappearingPlatform(x, y, PW, PH);
-        } else if (type < 65) {
-            float x = rng.nextFloat() * (GW - PW);
-            p = new BouncyPlatform(x, y, PW, PH);
-        } else if (type < 75) {
-            float x = rng.nextFloat() * (GW - PW);
-            p = new MovingPlatform(x, y, PW, PH);
-        } else if (type < 83) {
-            float x = rng.nextFloat() * (GW - PW);
-            p = new FallingPlatform(x, y, PW, PH);
-        } else if (type < 89) {
-            float x = rng.nextFloat() * (GW - PW);
-            p = new FakePlatform(x, y, PW, PH);
-        } else if (type < 94) {
-            float x = rng.nextFloat() * (GW - PW);
-            p = new SpikePlatform(x, y, PW, PH);
-        } else if (type < 98) {
-            float x = rng.nextFloat() * (GW - ENEMY_W);
-            p = new MovingEnemy(x, y, ENEMY_W, ENEMY_H);
-        } else {
-            float x = rng.nextFloat() * (GW - PW);
-            p = new SpringTrapPlatform(x, y, PW, PH);
-        }
+        if (type < 6)      p = new StandardPlatform   (x, y, PW, PH);
+        else if (type < 8) p = new DisappearingPlatform(x, y, PW, PH);
+        else if (type < 9) p = new BouncyPlatform      (x, y, PW, PH);
+        else               p = new MovingPlatform      (x, y, PW, PH);
         platforms.add(p);
+
+        // Don't place power-ups on disappearing platforms — they'd drop immediately.
+        if (!(p instanceof DisappearingPlatform)
+                && rng.nextInt(100) < POWERUP_CHANCE_PCT) {
+            maybeSpawnPowerUp(p);
+        }
+    }
+
+    private void maybeSpawnPowerUp(Platform host) {
+        int roll = rng.nextInt(10);
+        PowerUpType type;
+        if (roll < 2)      type = PowerUpType.JETPACK;     // 20%
+        else if (roll < 5) type = PowerUpType.SHIELD;      // 30%
+        else               type = PowerUpType.MULTIPLIER;  // 50%
+
+        float puX = host.getX() + host.getW() / 2f - PowerUp.SIZE / 2f;
+        float puY = host.getY() - PowerUp.SIZE - 4f;
+        powerUps.add(new PowerUp(type, puX, puY));
     }
 
     private void gameOver() {
@@ -373,9 +402,13 @@ public class GameView extends SurfaceView
             p.draw(canvas);
         }
 
+        for (PowerUp pu : powerUps) {
+            pu.draw(canvas);
+        }
+
         if (slime != null) slime.draw(canvas);
 
-        canvas.restore(); 
+        canvas.restore();
 
         if (gameState == State.PLAYING) {
             drawHUD(canvas);     
@@ -384,6 +417,16 @@ public class GameView extends SurfaceView
 
     private void drawHUD(Canvas canvas) {
         canvas.drawText("Score: " + score, 20f, 60f, scorePaint);
+
+        float y = 100f;
+        if (shieldCharges > 0) {
+            canvas.drawText("Shield x" + shieldCharges, 20f, y, scorePaint);
+            y += 36f;
+        }
+        if (multiplierTicksLeft > 0) {
+            int secondsLeft = (multiplierTicksLeft + 59) / 60;
+            canvas.drawText("2x (" + secondsLeft + "s)", 20f, y, scorePaint);
+        }
     }
 
     @Override

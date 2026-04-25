@@ -2,6 +2,7 @@
     <string name="app_name">SlimeJump</string>
     <string name="start_game">Start</string>
     <string name="leaderboard">Leaderboard</string>
+    <string name="profile">Profile</string>
     <string name="sign_in">Sign In</string>
     <string name="sign_up">Sign Up</string>
     <string name="username">Username</string>
@@ -9,10 +10,37 @@
     <string name="display_name">Display Name</string>
     <string name="submit">Submit</string>
     <string name="logout">Logout</string>
+    <string name="back">Back</string>
     <string name="game_over">Game Over</string>
     <string name="current_score">Score: %d</string>
     <string name="best_score">Best: %d</string>
+    <string name="new_high_score">✨ New High Score: %d !</string>
     <string name="sign_in_to_save">Sign in to save score!</string>
     <string name="no_account">Don\'t have an account? Sign Up</string>
     <string name="already_have_account">Already have an account? Sign In</string>
+    <string name="greeting">Hello, %s!</string>
+
+    <!-- Step counter / shield -->
+    <string name="shield_ready">Shield ready! (%d steps)</string>
+    <string name="steps_to_shield">Steps: %d | Walk %d more for shield</string>
+    <string name="shield_ready_label">Ready ✓</string>
+    <string name="shield_not_ready_label">Not ready</string>
+
+    <!-- Profile screen -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_stats_header">Game Statistics</string>
+    <string name="profile_sensor_header">Sensor Activity</string>
+    <string name="profile_display_name">Name: %s</string>
+    <string name="profile_username">Username: %s</string>
+    <string name="profile_high_score">High Score: %d</string>
+    <string name="profile_games_played">Games Played: %d</string>
+    <string name="profile_total_score">Total Score: %d</string>
+    <string name="profile_avg_score">Average Score: %d</string>
+    <string name="profile_steps">Steps Walked: %d</string>
+    <string name="profile_shield">Shield Status: %s</string>
+    <string name="profile_load_error">Failed to load profile data.</string>
+
+    <!-- Leaderboard -->
+    <string name="leaderboard_empty">No scores yet!</string>
+    <string name="leaderboard_load_error">Failed to load leaderboard.</string>
 </resources>

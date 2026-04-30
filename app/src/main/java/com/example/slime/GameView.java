@@ -76,6 +76,8 @@ public class GameView extends SurfaceView
     private static final float JETPACK_BOOST = -22f;
 
     private int score = 0;
+    private float totalScrolled = 0f;
+    private float highestLandingWorldY = 0f;
     private float sensorX = 0f;
     private SensorManager sensorManager;
     private float scaleX = 1f, scaleY = 1f;
@@ -91,6 +93,7 @@ public class GameView extends SurfaceView
     private Paint shieldPaint;
     private Paint shieldBgPaint;
     private Paint pauseBtnBgPaint;
+    private Paint pauseBtnBorderPaint;
     private Paint pauseIconPaint;
     private Paint overlayPaint;
     private Paint pauseLabelPaint;
@@ -146,12 +149,17 @@ public class GameView extends SurfaceView
         shieldBgPaint.setStyle(Paint.Style.FILL);
 
         pauseBtnBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pauseBtnBgPaint.setColor(Color.parseColor("#CC1a1a2e"));
+        pauseBtnBgPaint.setColor(Color.parseColor("#DD1a1a2e"));
         pauseBtnBgPaint.setStyle(Paint.Style.FILL);
+
+        pauseBtnBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        pauseBtnBorderPaint.setColor(Color.parseColor("#FFFFFFFF"));
+        pauseBtnBorderPaint.setStyle(Paint.Style.STROKE);
+        pauseBtnBorderPaint.setStrokeWidth(2f * density);
 
         pauseIconPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         pauseIconPaint.setColor(Color.WHITE);
-        pauseIconPaint.setTextSize(20f * density);
+        pauseIconPaint.setTextSize(26f * density);
         pauseIconPaint.setTextAlign(Paint.Align.CENTER);
         pauseIconPaint.setTypeface(Typeface.DEFAULT_BOLD);
 
@@ -222,8 +230,8 @@ public class GameView extends SurfaceView
             dstBgRect.set(0, 0, w, h);
         }
 
-        float btnSize = 48f * density;
-        float btnMargin = 12f * density;
+        float btnSize = 64f * density;
+        float btnMargin = 14f * density;
         pauseBtnRect = new RectF(w - btnSize - btnMargin, btnMargin, w - btnMargin, btnMargin + btnSize);
     }
 
@@ -240,6 +248,8 @@ public class GameView extends SurfaceView
         platforms.clear();
         powerUps.clear();
         score = 0;
+        totalScrolled = 0f;
+        highestLandingWorldY = GH - 60f;
         scoreMultiplier = 1;
         multiplierTicks = 0;
         userPaused = false;
@@ -292,7 +302,7 @@ public class GameView extends SurfaceView
                 if (lowest == null || p.getY() > lowest.getY()) lowest = p;
             }
             for (PowerUp pu : powerUps) pu.scrollDown(excess);
-            score += (int) (excess / 5f) * scoreMultiplier;
+            totalScrolled += excess;
         } else {
             slime.y = newY;
         }
@@ -300,6 +310,13 @@ public class GameView extends SurfaceView
         if (slime.isFalling() && slime.getState() == SlimeState.FALLING) {
             for (Platform p : platforms) {
                 if (p.canBounce() && slimeLandsOn(p)) {
+                    // World Y of platform (lower value = higher position in world).
+                    // Stays constant as both screenY and totalScrolled increase together.
+                    float platformWorldY = p.getY() - totalScrolled;
+                    if (platformWorldY < highestLandingWorldY) {
+                        score += (int)((highestLandingWorldY - platformWorldY) / 5f) * scoreMultiplier;
+                        highestLandingWorldY = platformWorldY;
+                    }
                     p.applyBounce(slime);
                     slime.setState(SlimeState.LANDING);
                     break;
@@ -534,7 +551,9 @@ public class GameView extends SurfaceView
 
     private void drawPauseButton(Canvas canvas) {
         if (pauseBtnRect == null) return;
-        canvas.drawRoundRect(pauseBtnRect, 10f * density, 10f * density, pauseBtnBgPaint);
+        float r = 12f * density;
+        canvas.drawRoundRect(pauseBtnRect, r, r, pauseBtnBgPaint);
+        canvas.drawRoundRect(pauseBtnRect, r, r, pauseBtnBorderPaint);
         String icon = userPaused ? ">" : "II";
         float iconY = pauseBtnRect.centerY() + pauseIconPaint.getTextSize() * 0.35f;
         canvas.drawText(icon, pauseBtnRect.centerX(), iconY, pauseIconPaint);

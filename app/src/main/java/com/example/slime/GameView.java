@@ -146,14 +146,16 @@ public class GameView extends SurfaceView
         shieldBgPaint.setStyle(Paint.Style.FILL);
 
         pauseBtnBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pauseBtnBgPaint.setColor(Color.parseColor("#CC1a1a2e"));
+        pauseBtnBgPaint.setColor(Color.parseColor("#E61a1a2e"));
         pauseBtnBgPaint.setStyle(Paint.Style.FILL);
+        pauseBtnBgPaint.setShadowLayer(8f, 0f, 4f, Color.parseColor("#88000000"));
 
         pauseIconPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         pauseIconPaint.setColor(Color.WHITE);
-        pauseIconPaint.setTextSize(20f * density);
+        pauseIconPaint.setTextSize(30f * density);
         pauseIconPaint.setTextAlign(Paint.Align.CENTER);
         pauseIconPaint.setTypeface(Typeface.DEFAULT_BOLD);
+        pauseIconPaint.setShadowLayer(4f, 2f, 2f, Color.parseColor("#88000000"));
 
         overlayPaint = new Paint();
         overlayPaint.setColor(Color.parseColor("#CC000000"));
@@ -222,8 +224,8 @@ public class GameView extends SurfaceView
             dstBgRect.set(0, 0, w, h);
         }
 
-        float btnSize = 48f * density;
-        float btnMargin = 12f * density;
+        float btnSize = 72f * density;
+        float btnMargin = 14f * density;
         pauseBtnRect = new RectF(w - btnSize - btnMargin, btnMargin, w - btnMargin, btnMargin + btnSize);
     }
 
@@ -292,7 +294,9 @@ public class GameView extends SurfaceView
                 if (lowest == null || p.getY() > lowest.getY()) lowest = p;
             }
             for (PowerUp pu : powerUps) pu.scrollDown(excess);
-            score += (int) (excess / 5f) * scoreMultiplier;
+            if (slime.dy <= 0) {
+                score += (int) (excess / 5f) * scoreMultiplier;
+            }
         } else {
             slime.y = newY;
         }

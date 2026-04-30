@@ -89,6 +89,12 @@ public class GameView extends SurfaceView
     private Paint scorePaint;
     private Paint shieldPaint;
     private Paint shieldBgPaint;
+    private Paint pauseBtnBgPaint;
+    private Paint pauseIconPaint;
+    private Paint overlayPaint;
+    private Paint pauseLabelPaint;
+    private RectF pauseBtnRect;
+    private volatile boolean userPaused = false;
 
     private GameThread gameThread;
 
@@ -136,6 +142,30 @@ public class GameView extends SurfaceView
         shieldBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         shieldBgPaint.setColor(Color.parseColor("#8800AABB"));
         shieldBgPaint.setStyle(Paint.Style.FILL);
+
+        pauseBtnBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        pauseBtnBgPaint.setColor(Color.parseColor("#99000000"));
+        pauseBtnBgPaint.setStyle(Paint.Style.FILL);
+
+        pauseIconPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        pauseIconPaint.setColor(Color.WHITE);
+        pauseIconPaint.setTextSize(28f);
+        pauseIconPaint.setTextAlign(Paint.Align.CENTER);
+        pauseIconPaint.setTypeface(Typeface.DEFAULT_BOLD);
+
+        overlayPaint = new Paint();
+        overlayPaint.setColor(Color.parseColor("#CC000000"));
+
+        pauseLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        pauseLabelPaint.setColor(Color.WHITE);
+        pauseLabelPaint.setTextSize(56f);
+        pauseLabelPaint.setTextAlign(Paint.Align.CENTER);
+        pauseLabelPaint.setShadowLayer(6f, 3f, 3f, Color.parseColor("#88000000"));
+        try {
+            pauseLabelPaint.setTypeface(ResourcesCompat.getFont(getContext(), R.font.dogicapixel));
+        } catch (Exception e) {
+            pauseLabelPaint.setTypeface(Typeface.DEFAULT_BOLD);
+        }
     }
 
     @Override
@@ -189,6 +219,10 @@ public class GameView extends SurfaceView
             srcBgRect.set(srcX, srcY, srcX + srcW, srcY + srcH);
             dstBgRect.set(0, 0, w, h);
         }
+
+        float btnSize = 52f;
+        float btnMargin = 14f;
+        pauseBtnRect = new RectF(w - btnSize - btnMargin, btnMargin, w - btnMargin, btnMargin + btnSize);
     }
 
     @Override
@@ -206,6 +240,7 @@ public class GameView extends SurfaceView
         score = 0;
         scoreMultiplier = 1;
         multiplierTicks = 0;
+        userPaused = false;
         gameState = State.PLAYING;
 
         float cx    = GW / 2f - PW / 2f;
@@ -224,7 +259,7 @@ public class GameView extends SurfaceView
     }
 
     void update() {
-        if (gameState == State.PLAYING) {
+        if (!userPaused && gameState == State.PLAYING) {
             updatePlaying();
         }
     }
@@ -463,6 +498,18 @@ public class GameView extends SurfaceView
         if (gameState == State.PLAYING) {
             drawHUD(canvas);
         }
+
+        drawPauseButton(canvas);
+
+        if (userPaused) {
+            canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), overlayPaint);
+            float cx = canvas.getWidth() / 2f;
+            float cy = canvas.getHeight() / 2f;
+            canvas.drawText("PAUSED", cx, cy, pauseLabelPaint);
+            pauseLabelPaint.setTextSize(28f);
+            canvas.drawText("nhan nut > de tiep tuc", cx, cy + 60f, pauseLabelPaint);
+            pauseLabelPaint.setTextSize(56f);
+        }
     }
 
     private void drawHUD(Canvas canvas) {
@@ -473,14 +520,27 @@ public class GameView extends SurfaceView
             String shieldText = "SHIELD";
             float tw = shieldPaint.measureText(shieldText);
             float x  = canvas.getWidth() - tw - 20f;
-            float y  = 60f;
+            float y  = 95f;
             canvas.drawRoundRect(x - 8f, y - 30f, x + tw + 8f, y + 6f, 8f, 8f, shieldBgPaint);
             canvas.drawText(shieldText, x, y, shieldPaint);
         }
     }
 
+    private void drawPauseButton(Canvas canvas) {
+        if (pauseBtnRect == null) return;
+        canvas.drawRoundRect(pauseBtnRect, 12f, 12f, pauseBtnBgPaint);
+        String icon = userPaused ? ">" : "II";
+        float iconY = pauseBtnRect.centerY() + pauseIconPaint.getTextSize() * 0.35f;
+        canvas.drawText(icon, pauseBtnRect.centerX(), iconY, pauseIconPaint);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_UP
+                && pauseBtnRect != null
+                && pauseBtnRect.contains(event.getX(), event.getY())) {
+            userPaused = !userPaused;
+        }
         return true;
     }
 

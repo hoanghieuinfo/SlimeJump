@@ -34,7 +34,11 @@ import com.example.slime.platform.SpikePlatform;
 import com.example.slime.platform.SpringTrapPlatform;
 import com.example.slime.platform.StandardPlatform;
 
+import com.example.slime.entities.PowerUpType;
+import com.example.slime.powerups.PowerUp;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -65,10 +69,19 @@ public class GameView extends SurfaceView
     private final List<Platform> platforms = new ArrayList<>();
     private final Random rng = new Random();
 
+    private final List<PowerUp> powerUps = new ArrayList<>();
+    private int scoreMultiplier = 1;
+    private int multiplierTicks = 0;
+    private static final int MULTIPLIER_DURATION = 300;
+    private static final float JETPACK_BOOST = -22f;
+
     private int score = 0;
+    private float totalScrolled = 0f;
+    private float highestLandingWorldY = 0f;
     private float sensorX = 0f;
     private SensorManager sensorManager;
     private float scaleX = 1f, scaleY = 1f;
+    private float density = 1f;
 
     private BackgroundTheme currentTheme;
     private Bitmap bgImg;
@@ -79,6 +92,13 @@ public class GameView extends SurfaceView
     private Paint scorePaint;
     private Paint shieldPaint;
     private Paint shieldBgPaint;
+    private Paint pauseBtnBgPaint;
+    private Paint pauseBtnBorderPaint;
+    private Paint pauseIconPaint;
+    private Paint overlayPaint;
+    private Paint pauseLabelPaint;
+    private RectF pauseBtnRect;
+    private volatile boolean userPaused = false;
 
     private GameThread gameThread;
 
@@ -99,6 +119,7 @@ public class GameView extends SurfaceView
         this.currentTheme = theme;
         this.hasShield = hasShield;
         this.shieldActive = hasShield;
+        density = context.getResources().getDisplayMetrics().density;
         getHolder().addCallback(this);
         setFocusable(true);
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -108,7 +129,7 @@ public class GameView extends SurfaceView
     private void initPaints() {
         scorePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         scorePaint.setColor(Color.WHITE);
-        scorePaint.setTextSize(32f);
+        scorePaint.setTextSize(18f * density);
         try {
             Typeface pixelFont = ResourcesCompat.getFont(getContext(), R.font.dogicapixel);
             scorePaint.setTypeface(pixelFont);
@@ -119,13 +140,42 @@ public class GameView extends SurfaceView
 
         shieldPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         shieldPaint.setColor(Color.WHITE);
-        shieldPaint.setTextSize(26f);
+        shieldPaint.setTextSize(14f * density);
         shieldPaint.setTypeface(scorePaint.getTypeface());
         shieldPaint.setShadowLayer(4f, 1f, 1f, Color.parseColor("#88000000"));
 
         shieldBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         shieldBgPaint.setColor(Color.parseColor("#8800AABB"));
         shieldBgPaint.setStyle(Paint.Style.FILL);
+
+        pauseBtnBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        pauseBtnBgPaint.setColor(Color.parseColor("#DD1a1a2e"));
+        pauseBtnBgPaint.setStyle(Paint.Style.FILL);
+
+        pauseBtnBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        pauseBtnBorderPaint.setColor(Color.parseColor("#FFFFFFFF"));
+        pauseBtnBorderPaint.setStyle(Paint.Style.STROKE);
+        pauseBtnBorderPaint.setStrokeWidth(2f * density);
+
+        pauseIconPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        pauseIconPaint.setColor(Color.WHITE);
+        pauseIconPaint.setTextSize(26f * density);
+        pauseIconPaint.setTextAlign(Paint.Align.CENTER);
+        pauseIconPaint.setTypeface(Typeface.DEFAULT_BOLD);
+
+        overlayPaint = new Paint();
+        overlayPaint.setColor(Color.parseColor("#CC000000"));
+
+        pauseLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        pauseLabelPaint.setColor(Color.WHITE);
+        pauseLabelPaint.setTextSize(36f * density);
+        pauseLabelPaint.setTextAlign(Paint.Align.CENTER);
+        pauseLabelPaint.setShadowLayer(6f, 3f, 3f, Color.parseColor("#88000000"));
+        try {
+            pauseLabelPaint.setTypeface(ResourcesCompat.getFont(getContext(), R.font.dogicapixel));
+        } catch (Exception e) {
+            pauseLabelPaint.setTypeface(Typeface.DEFAULT_BOLD);
+        }
     }
 
     @Override
@@ -179,6 +229,10 @@ public class GameView extends SurfaceView
             srcBgRect.set(srcX, srcY, srcX + srcW, srcY + srcH);
             dstBgRect.set(0, 0, w, h);
         }
+
+        float btnSize = 64f * density;
+        float btnMargin = 14f * density;
+        pauseBtnRect = new RectF(w - btnSize - btnMargin, btnMargin, w - btnMargin, btnMargin + btnSize);
     }
 
     @Override
@@ -192,7 +246,13 @@ public class GameView extends SurfaceView
 
     private void startGame() {
         platforms.clear();
+        powerUps.clear();
         score = 0;
+        totalScrolled = 0f;
+        highestLandingWorldY = GH - 60f;
+        scoreMultiplier = 1;
+        multiplierTicks = 0;
+        userPaused = false;
         gameState = State.PLAYING;
 
         float cx    = GW / 2f - PW / 2f;
@@ -211,7 +271,7 @@ public class GameView extends SurfaceView
     }
 
     void update() {
-        if (gameState == State.PLAYING) {
+        if (!userPaused && gameState == State.PLAYING) {
             updatePlaying();
         }
     }
@@ -241,7 +301,8 @@ public class GameView extends SurfaceView
                 p.scrollDown(excess);
                 if (lowest == null || p.getY() > lowest.getY()) lowest = p;
             }
-            score += (int) (excess / 5f);
+            for (PowerUp pu : powerUps) pu.scrollDown(excess);
+            totalScrolled += excess;
         } else {
             slime.y = newY;
         }
@@ -249,8 +310,14 @@ public class GameView extends SurfaceView
         if (slime.isFalling() && slime.getState() == SlimeState.FALLING) {
             for (Platform p : platforms) {
                 if (p.canBounce() && slimeLandsOn(p)) {
+                    // World Y of platform (lower value = higher position in world).
+                    // Stays constant as both screenY and totalScrolled increase together.
+                    float platformWorldY = p.getY() - totalScrolled;
+                    if (platformWorldY < highestLandingWorldY) {
+                        score += (int)((highestLandingWorldY - platformWorldY) / 5f) * scoreMultiplier;
+                        highestLandingWorldY = platformWorldY;
+                    }
                     p.applyBounce(slime);
-                    score += 10;
                     slime.setState(SlimeState.LANDING);
                     break;
                 }
@@ -271,6 +338,25 @@ public class GameView extends SurfaceView
 
         slime.updateAnimation();
 
+        if (multiplierTicks > 0 && --multiplierTicks == 0) scoreMultiplier = 1;
+
+        Iterator<PowerUp> puIter = powerUps.iterator();
+        while (puIter.hasNext()) {
+            PowerUp pu = puIter.next();
+            pu.update();
+            if (pu.getY() > GH + 50f) { puIter.remove(); continue; }
+            if (!pu.isCollected()) {
+                RectF pb = pu.getBounds();
+                if (pb.right > slime.x && pb.left < slime.x + Slime.SIZE
+                        && pb.bottom > slime.y && pb.top < slime.y + Slime.SIZE) {
+                    pu.collect();
+                    applyPowerUp(pu.getType());
+                }
+            } else {
+                puIter.remove();
+            }
+        }
+
         for (Platform p : platforms) {
             p.update(GW);
         }
@@ -283,6 +369,22 @@ public class GameView extends SurfaceView
             } else {
                 gameOver();
             }
+        }
+    }
+
+    private void applyPowerUp(PowerUpType type) {
+        switch (type) {
+            case JETPACK:
+                slime.dy = JETPACK_BOOST;
+                slime.setState(SlimeState.LAUNCH);
+                break;
+            case SHIELD:
+                shieldActive = true;
+                break;
+            case MULTIPLIER:
+                scoreMultiplier = 2;
+                multiplierTicks = MULTIPLIER_DURATION;
+                break;
         }
     }
 
@@ -357,7 +459,13 @@ public class GameView extends SurfaceView
         // 65-74 Moving(10%)   75-82 Falling(8%)       83-88 Fake(6%)
         // 89-93 Spike(5%)     94-97 MovingEnemy(4%)   98-99 SpringTrap(2%)
         if (type < 45) {
-            p = new StandardPlatform   (rng.nextFloat() * (GW - PW), y, PW, PH);
+            float px = rng.nextFloat() * (GW - PW);
+            p = new StandardPlatform(px, y, PW, PH);
+            if (rng.nextInt(100) < 15) {
+                PowerUpType puType = PowerUpType.values()[rng.nextInt(PowerUpType.values().length)];
+                float puX = px + (PW - PowerUp.SIZE) / 2f;
+                powerUps.add(new PowerUp(puType, puX, y - PowerUp.SIZE - 8f));
+            }
         } else if (type < 55) {
             p = new DisappearingPlatform(rng.nextFloat() * (GW - PW), y, PW, PH);
         } else if (type < 65) {
@@ -399,6 +507,8 @@ public class GameView extends SurfaceView
             p.draw(canvas);
         }
 
+        for (PowerUp pu : powerUps) pu.draw(canvas);
+
         if (slime != null) slime.draw(canvas);
 
         canvas.restore();
@@ -406,23 +516,59 @@ public class GameView extends SurfaceView
         if (gameState == State.PLAYING) {
             drawHUD(canvas);
         }
+
+        drawPauseButton(canvas);
+
+        if (userPaused) {
+            canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), overlayPaint);
+            float cx = canvas.getWidth() / 2f;
+            float cy = canvas.getHeight() / 2f;
+            pauseLabelPaint.setTextSize(36f * density);
+            canvas.drawText("PAUSED", cx, cy, pauseLabelPaint);
+            pauseLabelPaint.setTextSize(16f * density);
+            canvas.drawText("Nhan nut  >  de tiep tuc", cx, cy + 52f * density, pauseLabelPaint);
+            pauseLabelPaint.setTextSize(36f * density);
+        }
     }
 
     private void drawHUD(Canvas canvas) {
-        canvas.drawText("Score: " + score, 20f, 60f, scorePaint);
+        String scoreText = multiplierTicks > 0 ? "Score: " + score + "  [2x]" : "Score: " + score;
+        float dp16 = 16f * density;
+        float dp48 = 48f * density;
+        canvas.drawText(scoreText, dp16, dp48, scorePaint);
 
         if (shieldActive) {
             String shieldText = "SHIELD";
             float tw = shieldPaint.measureText(shieldText);
-            float x  = canvas.getWidth() - tw - 20f;
-            float y  = 60f;
-            canvas.drawRoundRect(x - 8f, y - 30f, x + tw + 8f, y + 6f, 8f, 8f, shieldBgPaint);
+            float pad = 8f * density;
+            float x  = canvas.getWidth() - tw - dp16 - (48f + 12f + 12f) * density;
+            float y  = dp48;
+            canvas.drawRoundRect(x - pad, y - shieldPaint.getTextSize(), x + tw + pad, y + pad / 2f,
+                    6f * density, 6f * density, shieldBgPaint);
             canvas.drawText(shieldText, x, y, shieldPaint);
         }
     }
 
+    private void drawPauseButton(Canvas canvas) {
+        if (pauseBtnRect == null) return;
+        float r = 12f * density;
+        canvas.drawRoundRect(pauseBtnRect, r, r, pauseBtnBgPaint);
+        canvas.drawRoundRect(pauseBtnRect, r, r, pauseBtnBorderPaint);
+        String icon = userPaused ? ">" : "II";
+        float iconY = pauseBtnRect.centerY() + pauseIconPaint.getTextSize() * 0.35f;
+        canvas.drawText(icon, pauseBtnRect.centerX(), iconY, pauseIconPaint);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_UP && pauseBtnRect != null) {
+            float extra = 8f * density;
+            boolean hit = event.getX() >= pauseBtnRect.left - extra
+                    && event.getX() <= pauseBtnRect.right + extra
+                    && event.getY() >= pauseBtnRect.top - extra
+                    && event.getY() <= pauseBtnRect.bottom + extra;
+            if (hit) userPaused = !userPaused;
+        }
         return true;
     }
 
@@ -436,10 +582,23 @@ public class GameView extends SurfaceView
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) { }
 
+    public void pauseGame() {
+        if (gameThread != null) gameThread.setPaused(true);
+        sensorManager.unregisterListener(this);
+    }
+
+    public void resumeGame() {
+        if (gameThread == null) return;
+        gameThread.setPaused(false);
+        Sensor accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (accel != null) sensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_GAME);
+    }
+
     static class GameThread extends Thread {
         private final SurfaceHolder holder;
         private final GameView view;
         private volatile boolean running = false;
+        private volatile boolean paused  = false;
         private static final long FRAME_MS = 16L;
 
         GameThread(SurfaceHolder holder, GameView view) {
@@ -448,10 +607,15 @@ public class GameView extends SurfaceView
         }
 
         void setRunning(boolean r) { running = r; }
+        void setPaused(boolean p)  { paused  = p; }
 
         @Override
         public void run() {
             while (running) {
+                if (paused) {
+                    try { Thread.sleep(16); } catch (InterruptedException ignored) {}
+                    continue;
+                }
                 long start  = System.currentTimeMillis();
                 Canvas canvas = null;
                 try {

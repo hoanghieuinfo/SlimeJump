@@ -299,7 +299,6 @@ public class GameView extends SurfaceView
             for (Platform p : platforms) {
                 if (p.canBounce() && slimeLandsOn(p)) {
                     p.applyBounce(slime);
-                    score += 10 * scoreMultiplier;
                     slime.setState(SlimeState.LANDING);
                     break;
                 }

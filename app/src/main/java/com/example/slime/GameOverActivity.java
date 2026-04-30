@@ -79,8 +79,8 @@ public class GameOverActivity extends AppCompatActivity implements SensorEventLi
         tvCurrentScore.setText(getString(R.string.current_score, currentScore));
 
         btnPlayAgain.setOnClickListener(v -> {
-            SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-            long accumulated = prefs.getLong(KEY_STEPS_ACCUMULATED, 0);
+            SharedPreferences playPrefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            long accumulated = playPrefs.getLong(KEY_STEPS_ACCUMULATED, 0);
             boolean shieldAvailable = accumulated >= STEPS_PER_SHIELD;
             Intent intent = new Intent(GameOverActivity.this, GameActivity.class);
             intent.putExtra("BG_THEME", currentTheme.name());

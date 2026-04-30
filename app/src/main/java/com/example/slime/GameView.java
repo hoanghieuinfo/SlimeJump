@@ -79,6 +79,7 @@ public class GameView extends SurfaceView
     private float sensorX = 0f;
     private SensorManager sensorManager;
     private float scaleX = 1f, scaleY = 1f;
+    private float density = 1f;
 
     private BackgroundTheme currentTheme;
     private Bitmap bgImg;
@@ -115,6 +116,7 @@ public class GameView extends SurfaceView
         this.currentTheme = theme;
         this.hasShield = hasShield;
         this.shieldActive = hasShield;
+        density = context.getResources().getDisplayMetrics().density;
         getHolder().addCallback(this);
         setFocusable(true);
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -124,7 +126,7 @@ public class GameView extends SurfaceView
     private void initPaints() {
         scorePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         scorePaint.setColor(Color.WHITE);
-        scorePaint.setTextSize(32f);
+        scorePaint.setTextSize(18f * density);
         try {
             Typeface pixelFont = ResourcesCompat.getFont(getContext(), R.font.dogicapixel);
             scorePaint.setTypeface(pixelFont);
@@ -135,7 +137,7 @@ public class GameView extends SurfaceView
 
         shieldPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         shieldPaint.setColor(Color.WHITE);
-        shieldPaint.setTextSize(26f);
+        shieldPaint.setTextSize(14f * density);
         shieldPaint.setTypeface(scorePaint.getTypeface());
         shieldPaint.setShadowLayer(4f, 1f, 1f, Color.parseColor("#88000000"));
 
@@ -144,12 +146,12 @@ public class GameView extends SurfaceView
         shieldBgPaint.setStyle(Paint.Style.FILL);
 
         pauseBtnBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pauseBtnBgPaint.setColor(Color.parseColor("#99000000"));
+        pauseBtnBgPaint.setColor(Color.parseColor("#CC1a1a2e"));
         pauseBtnBgPaint.setStyle(Paint.Style.FILL);
 
         pauseIconPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         pauseIconPaint.setColor(Color.WHITE);
-        pauseIconPaint.setTextSize(28f);
+        pauseIconPaint.setTextSize(20f * density);
         pauseIconPaint.setTextAlign(Paint.Align.CENTER);
         pauseIconPaint.setTypeface(Typeface.DEFAULT_BOLD);
 
@@ -158,7 +160,7 @@ public class GameView extends SurfaceView
 
         pauseLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         pauseLabelPaint.setColor(Color.WHITE);
-        pauseLabelPaint.setTextSize(56f);
+        pauseLabelPaint.setTextSize(36f * density);
         pauseLabelPaint.setTextAlign(Paint.Align.CENTER);
         pauseLabelPaint.setShadowLayer(6f, 3f, 3f, Color.parseColor("#88000000"));
         try {
@@ -220,8 +222,8 @@ public class GameView extends SurfaceView
             dstBgRect.set(0, 0, w, h);
         }
 
-        float btnSize = 52f;
-        float btnMargin = 14f;
+        float btnSize = 48f * density;
+        float btnMargin = 12f * density;
         pauseBtnRect = new RectF(w - btnSize - btnMargin, btnMargin, w - btnMargin, btnMargin + btnSize);
     }
 
@@ -504,30 +506,35 @@ public class GameView extends SurfaceView
             canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), overlayPaint);
             float cx = canvas.getWidth() / 2f;
             float cy = canvas.getHeight() / 2f;
+            pauseLabelPaint.setTextSize(36f * density);
             canvas.drawText("PAUSED", cx, cy, pauseLabelPaint);
-            pauseLabelPaint.setTextSize(28f);
-            canvas.drawText("nhan nut > de tiep tuc", cx, cy + 60f, pauseLabelPaint);
-            pauseLabelPaint.setTextSize(56f);
+            pauseLabelPaint.setTextSize(16f * density);
+            canvas.drawText("Nhan nut  >  de tiep tuc", cx, cy + 52f * density, pauseLabelPaint);
+            pauseLabelPaint.setTextSize(36f * density);
         }
     }
 
     private void drawHUD(Canvas canvas) {
         String scoreText = multiplierTicks > 0 ? "Score: " + score + "  [2x]" : "Score: " + score;
-        canvas.drawText(scoreText, 20f, 60f, scorePaint);
+        float dp16 = 16f * density;
+        float dp48 = 48f * density;
+        canvas.drawText(scoreText, dp16, dp48, scorePaint);
 
         if (shieldActive) {
             String shieldText = "SHIELD";
             float tw = shieldPaint.measureText(shieldText);
-            float x  = canvas.getWidth() - tw - 20f;
-            float y  = 95f;
-            canvas.drawRoundRect(x - 8f, y - 30f, x + tw + 8f, y + 6f, 8f, 8f, shieldBgPaint);
+            float pad = 8f * density;
+            float x  = canvas.getWidth() - tw - dp16 - (48f + 12f + 12f) * density;
+            float y  = dp48;
+            canvas.drawRoundRect(x - pad, y - shieldPaint.getTextSize(), x + tw + pad, y + pad / 2f,
+                    6f * density, 6f * density, shieldBgPaint);
             canvas.drawText(shieldText, x, y, shieldPaint);
         }
     }
 
     private void drawPauseButton(Canvas canvas) {
         if (pauseBtnRect == null) return;
-        canvas.drawRoundRect(pauseBtnRect, 12f, 12f, pauseBtnBgPaint);
+        canvas.drawRoundRect(pauseBtnRect, 10f * density, 10f * density, pauseBtnBgPaint);
         String icon = userPaused ? ">" : "II";
         float iconY = pauseBtnRect.centerY() + pauseIconPaint.getTextSize() * 0.35f;
         canvas.drawText(icon, pauseBtnRect.centerX(), iconY, pauseIconPaint);
@@ -535,10 +542,13 @@ public class GameView extends SurfaceView
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_UP
-                && pauseBtnRect != null
-                && pauseBtnRect.contains(event.getX(), event.getY())) {
-            userPaused = !userPaused;
+        if (event.getAction() == MotionEvent.ACTION_UP && pauseBtnRect != null) {
+            float extra = 8f * density;
+            boolean hit = event.getX() >= pauseBtnRect.left - extra
+                    && event.getX() <= pauseBtnRect.right + extra
+                    && event.getY() >= pauseBtnRect.top - extra
+                    && event.getY() <= pauseBtnRect.bottom + extra;
+            if (hit) userPaused = !userPaused;
         }
         return true;
     }

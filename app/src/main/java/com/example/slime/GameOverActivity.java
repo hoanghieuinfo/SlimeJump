@@ -35,6 +35,8 @@ public class GameOverActivity extends AppCompatActivity implements SensorEventLi
     private BackgroundTheme currentTheme = BackgroundTheme.DAY;
 
     private static final String PREFS = "slime_prefs";
+    private static final String KEY_STEPS_ACCUMULATED = "steps_accumulated";
+    private static final int STEPS_PER_SHIELD = 50;
 
     private int currentScore;
     private int hiScore;
@@ -77,8 +79,12 @@ public class GameOverActivity extends AppCompatActivity implements SensorEventLi
         tvCurrentScore.setText(getString(R.string.current_score, currentScore));
 
         btnPlayAgain.setOnClickListener(v -> {
+            SharedPreferences prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            long accumulated = prefs.getLong(KEY_STEPS_ACCUMULATED, 0);
+            boolean shieldAvailable = accumulated >= STEPS_PER_SHIELD;
             Intent intent = new Intent(GameOverActivity.this, GameActivity.class);
             intent.putExtra("BG_THEME", currentTheme.name());
+            intent.putExtra("HAS_SHIELD", shieldAvailable);
             startActivity(intent);
             finish();
         });

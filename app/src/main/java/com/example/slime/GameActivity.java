@@ -50,10 +50,12 @@ public class GameActivity extends Activity implements GameView.GameOverListener 
     @Override
     protected void onPause() {
         super.onPause();
+        if (gameView != null) gameView.pauseGame();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        if (gameView != null) gameView.resumeGame();
     }
 }

@@ -10,6 +10,11 @@ import com.example.slime.entities.BackgroundTheme;
 
 public class GameActivity extends Activity implements GameView.GameOverListener {
 
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
+
     private GameView gameView;
 
     @Override

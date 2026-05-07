@@ -1,0 +1,66 @@
+<resources>
+    <string name="app_name">SlimeJump</string>
+    <string name="start_game">Chơi</string>
+    <string name="leaderboard">Bảng xếp hạng</string>
+    <string name="profile">Hồ sơ</string>
+    <string name="sign_in">Đăng nhập</string>
+    <string name="sign_up">Đăng ký</string>
+    <string name="username">Tên tài khoản</string>
+    <string name="password">Mật khẩu</string>
+    <string name="display_name">Tên hiển thị</string>
+    <string name="submit">Xác nhận</string>
+    <string name="logout">Đăng xuất</string>
+    <string name="back">Quay lại</string>
+    <string name="game_over">Game Over</string>
+    <string name="current_score">Điểm: %d</string>
+    <string name="best_score">Tốt nhất: %d</string>
+    <string name="new_high_score">✨ Kỷ lục mới: %d !</string>
+    <string name="sign_in_to_save">Đăng nhập để lưu điểm!</string>
+    <string name="no_account">Chưa có tài khoản? Đăng ký</string>
+    <string name="already_have_account">Đã có tài khoản? Đăng nhập</string>
+    <string name="greeting">Xin chào, %s!</string>
+
+    <!-- Bộ đếm bước / khiên -->
+    <string name="shield_ready">Khiên sẵn sàng! (%d bước)</string>
+    <string name="steps_to_shield">Bước: %d | Đi thêm %d bước để có khiên</string>
+    <string name="shield_ready_label">Sẵn sàng ✓</string>
+    <string name="shield_not_ready_label">Chưa sẵn sàng</string>
+
+    <!-- Màn hình hồ sơ -->
+    <string name="profile_title">Hồ sơ</string>
+    <string name="profile_stats_header">Thống kê</string>
+    <string name="profile_sensor_header">Hoạt động cảm biến</string>
+    <string name="profile_display_name">Tên: %s</string>
+    <string name="profile_username">Tài khoản: %s</string>
+    <string name="profile_high_score">Điểm cao nhất: %d</string>
+    <string name="profile_games_played">Số ván đã chơi: %d</string>
+    <string name="profile_total_score">Tổng điểm: %d</string>
+    <string name="profile_avg_score">Điểm trung bình: %d</string>
+    <string name="profile_steps">Bước đã đi: %d</string>
+    <string name="profile_shield">Trạng thái khiên: %s</string>
+    <string name="profile_load_error">Không thể tải dữ liệu hồ sơ.</string>
+
+    <!-- Bảng xếp hạng -->
+    <string name="leaderboard_empty">Chưa có điểm nào!</string>
+    <string name="leaderboard_load_error">Không thể tải bảng xếp hạng.</string>
+    <string name="loading">Đang tải…</string>
+
+    <!-- Màn hình kết thúc -->
+    <string name="play_again">Chơi lại</string>
+    <string name="main_menu">Menu chính</string>
+
+    <!-- Thông báo đăng nhập / đăng ký -->
+    <string name="error_fill_all_fields">Vui lòng điền đủ thông tin</string>
+    <string name="error_wrong_credentials">Sai tài khoản hoặc mật khẩu</string>
+    <string name="login_success">Đăng nhập thành công!</string>
+    <string name="error_username_exists">Tên tài khoản đã tồn tại</string>
+    <string name="error_db_connection">Lỗi kết nối CSDL: </string>
+    <string name="error_username_format">Tài khoản từ 3–16 kí tự, không có kí tự đặc biệt và khoảng trắng</string>
+    <string name="error_password_format">Mật khẩu ít nhất 8 kí tự, không có kí tự đặc biệt và khoảng trắng</string>
+    <string name="error_display_name_format">Tên hiển thị từ 3–16 kí tự, chỉ chứa (!, @, _) và khoảng trắng</string>
+    <string name="error_registration_failed">Đăng ký thất bại: </string>
+    <string name="register_success">Đăng ký thành công!</string>
+
+    <!-- Nút chuyển ngôn ngữ (hiển thị để chuyển SANG ngôn ngữ kia) -->
+    <string name="language_toggle">EN</string>
+</resources>

@@ -23,6 +23,11 @@ import java.util.regex.Pattern;
 
 public class RegisterActivity extends AppCompatActivity {
 
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
+
     private EditText etUsername, etPassword, etDisplayName;
     private Button btnSubmit;
     private TextView tvSignIn, tvError;
@@ -75,14 +80,14 @@ public class RegisterActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         if (task.getResult() != null && task.getResult().exists()) {
-                            showError("Tên tài khoản đã tồn tại");
+                            showError(getString(R.string.error_username_exists));
                             btnSubmit.setEnabled(true);
                         } else {
                             // 2. Proceed with Firebase Auth registration
                             proceedWithAuth(username, usernameLower, password, displayName);
                         }
                     } else {
-                        showError("Lỗi kết nối CSDL: " + task.getException().getMessage());
+                        showError(getString(R.string.error_db_connection) + task.getException().getMessage());
                         btnSubmit.setEnabled(true);
                     }
                 });
@@ -91,19 +96,17 @@ public class RegisterActivity extends AppCompatActivity {
     private boolean validateInputs(String username, String password, String displayName) {
         // tên tài khoản: 3-16 chars, no spaces, no special (only letters/numbers)
         if (!Pattern.matches("^[a-zA-Z0-9]{3,16}$", username)) {
-            showError("Tài khoản từ 3-16 kí tự, không có kí tự đặc biệt và khoảng trắng");
+            showError(getString(R.string.error_username_format));
             return false;
         }
 
-        // mật khẩu: ít nhất 8 kí tự, không kí tự đặc biệt
         if (!Pattern.matches("^[a-zA-Z0-9]{8,}$", password)) {
-            showError("Mật khẩu ít nhất 8 kí tự, không có kí tự đặc biệt và khoảng trắng");
+            showError(getString(R.string.error_password_format));
             return false;
         }
 
-        // display name: 3-16 kí tự, có khoảng trống, có 3 kí tự đặc biệt !@_
         if (!Pattern.matches("^[a-zA-Z0-9!@_ ]{3,16}$", displayName)) {
-            showError("Tên hiển thị từ 3-16 kí tự, chỉ chứa (!, @, _) và khoảng trắng");
+            showError(getString(R.string.error_display_name_format));
             return false;
         }
 
@@ -122,7 +125,7 @@ public class RegisterActivity extends AppCompatActivity {
                         }
                     } else {
                         btnSubmit.setEnabled(true);
-                        showError("Đăng ký thất bại: " + task.getException().getMessage());
+                        showError(getString(R.string.error_registration_failed) + task.getException().getMessage());
                     }
                 });
     }
@@ -148,7 +151,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                     db.collection("leaderboard").document(user.getUid()).set(scoreData)
                             .addOnSuccessListener(aVoid2 -> {
-                                Toast.makeText(RegisterActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RegisterActivity.this, getString(R.string.register_success), Toast.LENGTH_SHORT).show();
                                 finish(); // Finish registration, user is now logged in
                             });
                 });

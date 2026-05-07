@@ -15,7 +15,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
-        android:margin="12dp"
+        android:layout_margin="12dp"
         android:background="@drawable/btn_darkblue"
         android:text="@string/language_toggle"
         android:textColor="@color/slime_text"

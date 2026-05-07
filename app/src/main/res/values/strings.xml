@@ -43,4 +43,24 @@
     <!-- Leaderboard -->
     <string name="leaderboard_empty">No scores yet!</string>
     <string name="leaderboard_load_error">Failed to load leaderboard.</string>
+    <string name="loading">Loading…</string>
+
+    <!-- Game Over screen -->
+    <string name="play_again">Play Again</string>
+    <string name="main_menu">Main Menu</string>
+
+    <!-- Login / Register messages -->
+    <string name="error_fill_all_fields">Please fill in all fields</string>
+    <string name="error_wrong_credentials">Incorrect username or password</string>
+    <string name="login_success">Login successful!</string>
+    <string name="error_username_exists">Username already taken</string>
+    <string name="error_db_connection">Database connection error: </string>
+    <string name="error_username_format">Username: 3–16 chars, letters and numbers only</string>
+    <string name="error_password_format">Password: at least 8 chars, letters and numbers only</string>
+    <string name="error_display_name_format">Display name: 3–16 chars, may contain (!, @, _) and spaces</string>
+    <string name="error_registration_failed">Registration failed: </string>
+    <string name="register_success">Registration successful!</string>
+
+    <!-- Language toggle button label (shown to switch TO the other language) -->
+    <string name="language_toggle">VI</string>
 </resources>

@@ -18,6 +18,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
+
     private static final String PREFS = "slime_prefs";
     private static final String KEY_STEPS_ACCUMULATED = "steps_accumulated";
     private static final int STEPS_PER_SHIELD = 50;

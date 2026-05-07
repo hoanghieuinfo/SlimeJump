@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.appcompat.widget.AppCompatButton;
 
 import com.example.slime.entities.BackgroundTheme;
 import com.google.firebase.auth.FirebaseAuth;
@@ -36,6 +37,7 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
 
     private TextView tvGreeting, tvStepInfo;
     private Button btnStart, btnLeaderboard, btnSignIn, btnProfile;
+    private AppCompatButton btnLanguage;
 
     private ImageView bgImageView;
     private SensorManager sensorManager;
@@ -45,6 +47,11 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
 
     private long sessionStartSteps = -1;
     private long currentStepReading = -1;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +69,7 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
         btnLeaderboard = findViewById(R.id.btnLeaderboard);
         btnSignIn = findViewById(R.id.btnSignIn);
         btnProfile = findViewById(R.id.btnProfile);
+        btnLanguage = findViewById(R.id.btnLanguage);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         if (sensorManager != null) {
@@ -96,6 +104,11 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
             } else {
                 startActivity(new Intent(MainMenuActivity.this, LoginActivity.class));
             }
+        });
+
+        btnLanguage.setOnClickListener(v -> {
+            LocaleHelper.toggleLanguage(this);
+            recreate();
         });
 
         requestActivityRecognitionPermission();

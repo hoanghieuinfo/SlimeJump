@@ -23,6 +23,11 @@ import java.util.List;
 
 public class LeaderboardActivity extends AppCompatActivity {
 
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
+
     private RecyclerView recyclerView;
     private TextView tvEmpty;
     private LeaderboardAdapter adapter;

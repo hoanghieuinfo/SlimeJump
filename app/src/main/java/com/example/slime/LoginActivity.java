@@ -1,5 +1,6 @@
 package com.example.slime;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -11,13 +12,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Context;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
 
     private EditText etUsername, etPassword;
     private Button btnSubmit;
@@ -54,7 +58,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
 
         if (username.isEmpty() || password.isEmpty()) {
-            showError("Vui lòng điền đủ thông tin");
+            showError(getString(R.string.error_fill_all_fields));
             return;
         }
 
@@ -70,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         syncScoreToLocal(task.getResult().getUser());
                     } else {
-                        showError("Sai tài khoản hoặc mật khẩu");
+                        showError(getString(R.string.error_wrong_credentials));
                     }
                 });
     }
@@ -91,7 +95,7 @@ public class LoginActivity extends AppCompatActivity {
                             .putInt("hi_score_" + user.getUid(), score)
                             .apply();
                 }
-                Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, getString(R.string.login_success), Toast.LENGTH_SHORT).show();
                 finish(); // return to main menu
             });
     }

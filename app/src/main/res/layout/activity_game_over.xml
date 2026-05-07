@@ -74,7 +74,7 @@
         android:paddingBottom="8dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/btn_blue"
-        android:text="Play Again"
+        android:text="@string/play_again"
         android:textColor="@color/slime_text"
         android:textSize="18sp"/>
 
@@ -85,7 +85,7 @@
         android:layout_gravity="center"
         android:paddingBottom="8dp"
         android:background="@drawable/btn_darkblue"
-        android:text="Main Menu"
+        android:text="@string/main_menu"
         android:textColor="@color/slime_text"
         android:textSize="18sp"/>
 

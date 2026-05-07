@@ -26,6 +26,11 @@ import com.google.firebase.firestore.FieldValue;
 
 public class GameOverActivity extends AppCompatActivity implements SensorEventListener {
 
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase));
+    }
+
     private TextView tvCurrentScore, tvBestScore, tvSignInPrompt;
     private Button btnPlayAgain, btnMenu;
     private ImageView bgImageView;

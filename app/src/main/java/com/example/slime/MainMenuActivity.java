@@ -18,6 +18,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ImageView;
 
+import androidx.appcompat.app.AlertDialog;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -37,7 +39,7 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
 
     private TextView tvGreeting, tvStepInfo;
     private Button btnStart, btnLeaderboard, btnSignIn, btnProfile;
-    private AppCompatButton btnLanguage;
+    private AppCompatButton btnLanguage, btnInfo;
 
     private ImageView bgImageView;
     private SensorManager sensorManager;
@@ -70,6 +72,7 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
         btnSignIn = findViewById(R.id.btnSignIn);
         btnProfile = findViewById(R.id.btnProfile);
         btnLanguage = findViewById(R.id.btnLanguage);
+        btnInfo = findViewById(R.id.btnInfo);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         if (sensorManager != null) {
@@ -109,6 +112,14 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
         btnLanguage.setOnClickListener(v -> {
             LocaleHelper.toggleLanguage(this);
             recreate();
+        });
+
+        btnInfo.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.project_info_title))
+                    .setMessage(getString(R.string.project_info_content))
+                    .setPositiveButton("OK", null)
+                    .show();
         });
 
         requestActivityRecognitionPermission();

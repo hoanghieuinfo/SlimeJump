@@ -63,4 +63,9 @@
 
     <!-- Language toggle button label (shown to switch TO the other language) -->
     <string name="language_toggle">VI</string>
+
+    <!-- Project info button & dialog -->
+    <string name="btn_info">Info</string>
+    <string name="project_info_title">About</string>
+    <string name="project_info_content">BÀI TẬP LỚN\nLẬP TRÌNH DI ĐỘNG NÂNG CAO\n\nĐề tài:\nXây dựng game dựa trên cảm biến\n\nGiảng viên hướng dẫn:\nTh.S Lê Hữu Dũng\n\nNhóm sinh viên thực hiện:\nAMP.G09\n\nHoàng Minh Hiếu — 2310A02\nĐặng Trường An — 2310A01\nĐỗ Quốc Khánh — 2310A01</string>
 </resources>

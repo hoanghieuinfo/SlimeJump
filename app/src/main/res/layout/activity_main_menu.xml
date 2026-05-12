@@ -126,10 +126,22 @@
             android:layout_height="80dp"
             android:layout_gravity="center"
             android:paddingBottom="8dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/btn_darkblue"
             android:text="@string/sign_in"
             android:textColor="@color/slime_text"
             android:textSize="16sp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnActivityLog"
+            android:layout_width="220dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:paddingBottom="8dp"
+            android:background="@drawable/btn_darkblue"
+            android:text="@string/activity_log_title"
+            android:textColor="@color/slime_text"
+            android:textSize="14sp"/>
 
     </LinearLayout>
 </FrameLayout>

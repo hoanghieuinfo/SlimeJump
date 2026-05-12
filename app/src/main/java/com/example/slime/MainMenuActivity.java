@@ -39,7 +39,7 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
 
     private TextView tvGreeting, tvStepInfo;
     private Button btnStart, btnLeaderboard, btnSignIn, btnProfile;
-    private AppCompatButton btnLanguage, btnInfo;
+    private AppCompatButton btnLanguage, btnInfo, btnActivityLog;
 
     private ImageView bgImageView;
     private SensorManager sensorManager;
@@ -73,6 +73,7 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
         btnProfile = findViewById(R.id.btnProfile);
         btnLanguage = findViewById(R.id.btnLanguage);
         btnInfo = findViewById(R.id.btnInfo);
+        btnActivityLog = findViewById(R.id.btnActivityLog);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         if (sensorManager != null) {
@@ -114,6 +115,9 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
             recreate();
         });
 
+        btnActivityLog.setOnClickListener(v ->
+                startActivity(new Intent(MainMenuActivity.this, ActivityLogActivity.class)));
+
         btnInfo.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.project_info_title))
@@ -122,6 +126,7 @@ public class MainMenuActivity extends AppCompatActivity implements SensorEventLi
                     .show();
         });
 
+        ActivityLogger.log(this, "Main Menu");
         requestActivityRecognitionPermission();
     }
 

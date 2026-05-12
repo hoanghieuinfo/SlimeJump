@@ -46,6 +46,7 @@ public class LeaderboardActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         tvEmpty      = findViewById(R.id.tvEmpty);
 
+        ActivityLogger.log(this, "Leaderboard");
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         scoreList = new ArrayList<>();
         adapter   = new LeaderboardAdapter(scoreList);

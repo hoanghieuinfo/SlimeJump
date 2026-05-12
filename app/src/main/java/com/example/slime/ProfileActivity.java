@@ -52,6 +52,7 @@ public class ProfileActivity extends AppCompatActivity {
         tvLoadingError = findViewById(R.id.tvProfileError);
         btnBack = findViewById(R.id.btnProfileBack);
 
+        ActivityLogger.log(this, "Profile");
         btnBack.setOnClickListener(v -> finish());
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();

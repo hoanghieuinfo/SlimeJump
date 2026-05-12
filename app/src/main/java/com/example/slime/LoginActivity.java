@@ -45,6 +45,7 @@ public class LoginActivity extends AppCompatActivity {
         tvSignUp = findViewById(R.id.tvSignUp);
         tvError = findViewById(R.id.tvError);
 
+        ActivityLogger.log(this, "Login");
         btnSubmit.setOnClickListener(v -> loginUser());
 
         tvSignUp.setOnClickListener(v -> {

@@ -37,6 +37,7 @@ public class GameActivity extends Activity implements GameView.GameOverListener 
 
         boolean hasShield = getIntent().getBooleanExtra("HAS_SHIELD", false);
 
+        ActivityLogger.log(this, "Game");
         gameView = new GameView(this, theme, hasShield);
         gameView.setGameOverListener(this);
         setContentView(gameView);

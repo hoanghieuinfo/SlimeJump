@@ -61,6 +61,10 @@
     <string name="error_registration_failed">Registration failed: </string>
     <string name="register_success">Registration successful!</string>
 
+    <!-- Activity log -->
+    <string name="activity_log_title">Activity Log</string>
+    <string name="activity_log_empty">No activity recorded yet.</string>
+
     <!-- Language toggle button label (shown to switch TO the other language) -->
     <string name="language_toggle">VI</string>
 

@@ -81,6 +81,7 @@ public class GameOverActivity extends AppCompatActivity implements SensorEventLi
             tvBestScore.setText(getString(R.string.best_score, hiScore));
         }
 
+        ActivityLogger.log(this, "Game Over");
         tvCurrentScore.setText(getString(R.string.current_score, currentScore));
 
         btnPlayAgain.setOnClickListener(v -> {

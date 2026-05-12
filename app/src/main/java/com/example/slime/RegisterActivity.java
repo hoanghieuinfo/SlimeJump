@@ -54,6 +54,7 @@ public class RegisterActivity extends AppCompatActivity {
         tvSignIn = findViewById(R.id.tvSignIn);
         tvError = findViewById(R.id.tvError);
 
+        ActivityLogger.log(this, "Register");
         btnSubmit.setOnClickListener(v -> registerUser());
 
         tvSignIn.setOnClickListener(v -> {

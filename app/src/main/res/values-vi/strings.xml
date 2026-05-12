@@ -61,6 +61,10 @@
     <string name="error_registration_failed">Đăng ký thất bại: </string>
     <string name="register_success">Đăng ký thành công!</string>
 
+    <!-- Nhật ký hoạt động -->
+    <string name="activity_log_title">Nhật ký hoạt động</string>
+    <string name="activity_log_empty">Chưa có hoạt động nào được ghi lại.</string>
+
     <!-- Nút chuyển ngôn ngữ (hiển thị để chuyển SANG ngôn ngữ kia) -->
     <string name="language_toggle">EN</string>
 

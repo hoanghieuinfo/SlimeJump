@@ -48,6 +48,7 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
     // --- Pagination state ---
     private List<ActivityLogDbHelper.ActivityLogEntry> allResults = new ArrayList<>();
     private int currentPage = 0;
+    private boolean searchActive = false; // false = show all; true = paginated
 
     // --- Views ---
     private TextView tvPageInfo, tvSensorHint, tvEmpty;
@@ -97,9 +98,10 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
             lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         }
 
-        // --- Initial load: all records, first page ---
+        // --- Initial load: show all records without pagination ---
         allResults = ActivityLogDbHelper.getInstance(this).queryAll();
         currentPage = 0;
+        searchActive = false;
         refreshDisplay();
     }
 
@@ -174,24 +176,26 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
         tvEmpty.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
 
-        int first = currentPage * PAGE_SIZE;
-        int last  = Math.min(first + PAGE_SIZE, allResults.size());
-        List<ActivityLogDbHelper.ActivityLogEntry> pageData = allResults.subList(first, last);
-
-        adapter.setData(pageData, first);
-
-        int displayFirst = first + 1;
-        int displayLast  = last;
-        int total        = allResults.size();
-        int totalPg      = totalPages();
-        tvPageInfo.setText(getString(R.string.log_page_info,
-                displayFirst, displayLast, total, currentPage + 1, totalPg));
-
-        if (lightSensor != null && totalPg > 1) {
-            tvSensorHint.setVisibility(View.VISIBLE);
-            tvSensorHint.setText(getString(R.string.log_sensor_hint));
-        } else {
+        if (!searchActive) {
+            // Initial state: show all records, no pagination
+            adapter.setData(allResults, 0);
+            tvPageInfo.setText(getString(R.string.log_total_records, allResults.size()));
             tvSensorHint.setVisibility(View.GONE);
+        } else {
+            // Search mode: paginated, 3 records per page
+            int first = currentPage * PAGE_SIZE;
+            int last  = Math.min(first + PAGE_SIZE, allResults.size());
+            adapter.setData(allResults.subList(first, last), first);
+
+            int totalPg = totalPages();
+            tvPageInfo.setText(getString(R.string.log_page_info,
+                    first + 1, last, allResults.size(), currentPage + 1, totalPg));
+
+            if (lightSensor != null && totalPg > 1) {
+                tvSensorHint.setVisibility(View.VISIBLE);
+            } else {
+                tvSensorHint.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -202,10 +206,11 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
         String fromInput = etFromDateTime.getText().toString().trim();
         String toInput   = etToDateTime.getText().toString().trim();
 
-        // Both empty → show all records
+        // Both empty → show all records without pagination
         if (fromInput.isEmpty() && toInput.isEmpty()) {
             allResults = ActivityLogDbHelper.getInstance(this).queryAll();
             currentPage = 0;
+            searchActive = false;
             sensorTriggerReady = true;
             refreshDisplay();
             return;
@@ -232,6 +237,7 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
 
         allResults = ActivityLogDbHelper.getInstance(this).queryByTimeRange(fromTs, toTs);
         currentPage = 0;
+        searchActive = true;
         sensorTriggerReady = true;
         refreshDisplay();
     }

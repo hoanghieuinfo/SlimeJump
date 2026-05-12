@@ -68,6 +68,7 @@
     <string name="log_to">Đến:</string>
     <string name="log_search">Tìm kiếm</string>
     <string name="log_no_results">Không có kết quả.</string>
+    <string name="log_total_records">Tất cả bản ghi: %1$d</string>
     <string name="log_page_info">Hiển thị %1$d–%2$d / %3$d bản ghi (trang %4$d/%5$d)</string>
     <string name="log_page_toast">Hiển thị %1$d–%2$d / %3$d</string>
     <string name="log_sensor_hint">Che cảm biến ánh sáng để xem 3 bản ghi tiếp theo</string>

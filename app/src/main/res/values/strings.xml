@@ -63,7 +63,14 @@
 
     <!-- Activity log -->
     <string name="activity_log_title">Activity Log</string>
-    <string name="activity_log_empty">No activity recorded yet.</string>
+    <string name="activity_log_empty">No activity found for this time range.</string>
+    <string name="log_from">From:</string>
+    <string name="log_to">To:</string>
+    <string name="log_search">Search</string>
+    <string name="log_no_results">No results found.</string>
+    <string name="log_page_info">Showing %1$d–%2$d of %3$d records (page %4$d/%5$d)</string>
+    <string name="log_page_toast">Showing %1$d–%2$d of %3$d</string>
+    <string name="log_sensor_hint">Cover the light sensor to view next 3 records</string>
 
     <!-- Language toggle button label (shown to switch TO the other language) -->
     <string name="language_toggle">VI</string>

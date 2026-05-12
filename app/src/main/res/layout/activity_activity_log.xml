@@ -6,16 +6,123 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Title -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/activity_log_title"
         android:textColor="@color/gold"
-        android:textSize="28sp"
+        android:textSize="24sp"
         android:textStyle="bold"
         android:gravity="center"
         android:layout_marginBottom="12dp"/>
 
+    <!-- Search section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/slime_blue_primary"
+        android:padding="10dp"
+        android:layout_marginBottom="10dp">
+
+        <!-- From row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="@string/log_from"
+                android:textColor="@color/slime_text_hint"
+                android:textSize="13sp"/>
+
+            <TextView
+                android:id="@+id/tvFromDateTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/slime_blue_dark"
+                android:textColor="@color/slime_text"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true"/>
+
+        </LinearLayout>
+
+        <!-- To row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:text="@string/log_to"
+                android:textColor="@color/slime_text_hint"
+                android:textSize="13sp"/>
+
+            <TextView
+                android:id="@+id/tvToDateTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/slime_blue_dark"
+                android:textColor="@color/slime_text"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true"/>
+
+        </LinearLayout>
+
+        <!-- Search button -->
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/btn_blue"
+            android:text="@string/log_search"
+            android:textColor="@color/slime_text"
+            android:textSize="15sp"/>
+
+    </LinearLayout>
+
+    <!-- Page info -->
+    <TextView
+        android:id="@+id/tvPageInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/gold"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:layout_marginBottom="4dp"/>
+
+    <!-- Sensor hint -->
+    <TextView
+        android:id="@+id/tvSensorHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/log_sensor_hint"
+        android:textColor="@color/slime_accent"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:background="#33FFFFFF"
+        android:padding="4dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"/>
+
+    <!-- Empty state -->
     <TextView
         android:id="@+id/tvActivityLogEmpty"
         android:layout_width="match_parent"
@@ -23,10 +130,11 @@
         android:layout_weight="1"
         android:text="@string/activity_log_empty"
         android:textColor="@color/slime_text_hint"
-        android:textSize="16sp"
+        android:textSize="15sp"
         android:gravity="center"
         android:visibility="gone"/>
 
+    <!-- Results list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvActivityLog"
         android:layout_width="match_parent"
@@ -34,14 +142,15 @@
         android:layout_weight="1"
         android:scrollbars="vertical"/>
 
+    <!-- Back button -->
     <Button
         android:id="@+id/btnActivityLogBack"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/btn_darkblue"
         android:text="@string/back"
         android:textColor="@color/slime_text"
-        android:textSize="16sp"/>
+        android:textSize="15sp"/>
 
 </LinearLayout>

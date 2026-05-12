@@ -68,9 +68,30 @@ public class ActivityLogDbHelper extends SQLiteOpenHelper {
     }
 
     List<ActivityLogEntry> queryAll() {
+        return queryByTimeRange(null, null);
+    }
+
+    /** Returns entries where timestamp is between fromTs and toTs (inclusive).
+     *  Pass null for either bound to skip that filter.
+     *  Timestamps must be in "yyyy-MM-dd HH:mm:ss" format. */
+    List<ActivityLogEntry> queryByTimeRange(String fromTs, String toTs) {
         List<ActivityLogEntry> list = new ArrayList<>();
+        String selection = null;
+        String[] selectionArgs = null;
+
+        if (fromTs != null && toTs != null) {
+            selection = COL_TIMESTAMP + " >= ? AND " + COL_TIMESTAMP + " <= ?";
+            selectionArgs = new String[]{fromTs, toTs};
+        } else if (fromTs != null) {
+            selection = COL_TIMESTAMP + " >= ?";
+            selectionArgs = new String[]{fromTs};
+        } else if (toTs != null) {
+            selection = COL_TIMESTAMP + " <= ?";
+            selectionArgs = new String[]{toTs};
+        }
+
         try (Cursor c = getReadableDatabase().query(
-                TABLE, null, null, null, null, null,
+                TABLE, null, selection, selectionArgs, null, null,
                 COL_ID + " DESC")) {
             int idxTs   = c.getColumnIndexOrThrow(COL_TIMESTAMP);
             int idxScr  = c.getColumnIndexOrThrow(COL_SCREEN);

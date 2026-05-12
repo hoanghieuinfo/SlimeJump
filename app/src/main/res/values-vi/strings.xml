@@ -63,7 +63,14 @@
 
     <!-- Nhật ký hoạt động -->
     <string name="activity_log_title">Nhật ký hoạt động</string>
-    <string name="activity_log_empty">Chưa có hoạt động nào được ghi lại.</string>
+    <string name="activity_log_empty">Không tìm thấy hoạt động trong khoảng thời gian này.</string>
+    <string name="log_from">Từ:</string>
+    <string name="log_to">Đến:</string>
+    <string name="log_search">Tìm kiếm</string>
+    <string name="log_no_results">Không có kết quả.</string>
+    <string name="log_page_info">Hiển thị %1$d–%2$d / %3$d bản ghi (trang %4$d/%5$d)</string>
+    <string name="log_page_toast">Hiển thị %1$d–%2$d / %3$d</string>
+    <string name="log_sensor_hint">Che cảm biến ánh sáng để xem 3 bản ghi tiếp theo</string>
 
     <!-- Nút chuyển ngôn ngữ (hiển thị để chuyển SANG ngôn ngữ kia) -->
     <string name="language_toggle">EN</string>

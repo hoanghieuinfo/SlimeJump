@@ -71,6 +71,8 @@
     <string name="log_page_info">Hiển thị %1$d–%2$d / %3$d bản ghi (trang %4$d/%5$d)</string>
     <string name="log_page_toast">Hiển thị %1$d–%2$d / %3$d</string>
     <string name="log_sensor_hint">Che cảm biến ánh sáng để xem 3 bản ghi tiếp theo</string>
+    <string name="log_datetime_hint">yyyy-MM-dd HH:mm</string>
+    <string name="log_datetime_error">Sai định dạng. Nhập: yyyy-MM-dd HH:mm</string>
 
     <!-- Nút chuyển ngôn ngữ (hiển thị để chuyển SANG ngôn ngữ kia) -->
     <string name="language_toggle">EN</string>

@@ -1,7 +1,5 @@
 package com.example.slime;
 
-import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,6 +12,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,8 +21,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,16 +38,18 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
         super.attachBaseContext(LocaleHelper.applyLocale(newBase));
     }
 
-    // --- Search date-time state ---
-    private int fromYear, fromMonth, fromDay, fromHour, fromMinute;
-    private int toYear,   toMonth,   toDay,   toHour,   toMinute;
+    private static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm";
+    private static final SimpleDateFormat SDF =
+            new SimpleDateFormat(DATETIME_FORMAT, Locale.getDefault());
+
+    // --- Views for search input ---
+    private EditText etFromDateTime, etToDateTime;
 
     // --- Pagination state ---
     private List<ActivityLogDbHelper.ActivityLogEntry> allResults = new ArrayList<>();
     private int currentPage = 0;
 
     // --- Views ---
-    private TextView tvFromDateTime, tvToDateTime;
     private TextView tvPageInfo, tvSensorHint, tvEmpty;
     private RecyclerView recyclerView;
     private LogAdapter adapter;
@@ -69,8 +71,8 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
         ActivityLogger.log(this, "Activity Log");
 
         // --- Bind views ---
-        tvFromDateTime = findViewById(R.id.tvFromDateTime);
-        tvToDateTime   = findViewById(R.id.tvToDateTime);
+        etFromDateTime = findViewById(R.id.etFromDateTime);
+        etToDateTime   = findViewById(R.id.etToDateTime);
         Button btnSearch = findViewById(R.id.btnSearch);
         tvPageInfo     = findViewById(R.id.tvPageInfo);
         tvSensorHint   = findViewById(R.id.tvSensorHint);
@@ -82,26 +84,6 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new LogAdapter();
         recyclerView.setAdapter(adapter);
-
-        // --- Default date range: today 00:00 → now ---
-        Calendar now = Calendar.getInstance();
-        toYear = now.get(Calendar.YEAR);
-        toMonth = now.get(Calendar.MONTH);
-        toDay = now.get(Calendar.DAY_OF_MONTH);
-        toHour = now.get(Calendar.HOUR_OF_DAY);
-        toMinute = now.get(Calendar.MINUTE);
-
-        fromYear = toYear;
-        fromMonth = toMonth;
-        fromDay = toDay;
-        fromHour = 0;
-        fromMinute = 0;
-
-        updateDateTimeLabels();
-
-        // --- Picker listeners ---
-        tvFromDateTime.setOnClickListener(v -> pickDateTime(true));
-        tvToDateTime.setOnClickListener(v -> pickDateTime(false));
 
         // --- Search button ---
         btnSearch.setOnClickListener(v -> performSearch());
@@ -217,12 +199,36 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
     // Search
     // -------------------------------------------------------------------------
     private void performSearch() {
-        String fromTs = String.format(Locale.getDefault(),
-                "%04d-%02d-%02d %02d:%02d:00",
-                fromYear, fromMonth + 1, fromDay, fromHour, fromMinute);
-        String toTs = String.format(Locale.getDefault(),
-                "%04d-%02d-%02d %02d:%02d:59",
-                toYear, toMonth + 1, toDay, toHour, toMinute);
+        String fromInput = etFromDateTime.getText().toString().trim();
+        String toInput   = etToDateTime.getText().toString().trim();
+
+        // Both empty → show all records
+        if (fromInput.isEmpty() && toInput.isEmpty()) {
+            allResults = ActivityLogDbHelper.getInstance(this).queryAll();
+            currentPage = 0;
+            sensorTriggerReady = true;
+            refreshDisplay();
+            return;
+        }
+
+        // Validate non-empty fields
+        String fromTs = null, toTs = null;
+        if (!fromInput.isEmpty()) {
+            fromTs = parseToStorageFormat(fromInput);
+            if (fromTs == null) {
+                etFromDateTime.setError(getString(R.string.log_datetime_error));
+                return;
+            }
+        }
+        if (!toInput.isEmpty()) {
+            toTs = parseToStorageFormat(toInput);
+            if (toTs == null) {
+                etToDateTime.setError(getString(R.string.log_datetime_error));
+                return;
+            }
+            // toTs: include the full last minute (append :59)
+            toTs = toTs.replace(":00", ":59");
+        }
 
         allResults = ActivityLogDbHelper.getInstance(this).queryByTimeRange(fromTs, toTs);
         currentPage = 0;
@@ -230,36 +236,18 @@ public class ActivityLogActivity extends AppCompatActivity implements SensorEven
         refreshDisplay();
     }
 
-    // -------------------------------------------------------------------------
-    // Date / Time pickers
-    // -------------------------------------------------------------------------
-    private void pickDateTime(boolean isFrom) {
-        int year   = isFrom ? fromYear  : toYear;
-        int month  = isFrom ? fromMonth : toMonth;
-        int day    = isFrom ? fromDay   : toDay;
-
-        new DatePickerDialog(this, (view, y, m, d) -> {
-            if (isFrom) { fromYear = y; fromMonth = m; fromDay = d; }
-            else        { toYear   = y; toMonth   = m; toDay   = d; }
-
-            int hour = isFrom ? fromHour : toHour;
-            int min  = isFrom ? fromMinute : toMinute;
-            new TimePickerDialog(this, (tv, h, mn) -> {
-                if (isFrom) { fromHour = h; fromMinute = mn; }
-                else        { toHour   = h; toMinute   = mn; }
-                updateDateTimeLabels();
-            }, hour, min, true).show();
-
-        }, year, month, day).show();
-    }
-
-    private void updateDateTimeLabels() {
-        tvFromDateTime.setText(String.format(Locale.getDefault(),
-                "%04d-%02d-%02d  %02d:%02d",
-                fromYear, fromMonth + 1, fromDay, fromHour, fromMinute));
-        tvToDateTime.setText(String.format(Locale.getDefault(),
-                "%04d-%02d-%02d  %02d:%02d",
-                toYear, toMonth + 1, toDay, toHour, toMinute));
+    /**
+     * Parses "yyyy-MM-dd HH:mm" input to storage format "yyyy-MM-dd HH:mm:00".
+     * Returns null if the input doesn't match the expected pattern.
+     */
+    private String parseToStorageFormat(String input) {
+        try {
+            SDF.setLenient(false);
+            SDF.parse(input); // validates the date
+            return input + ":00";
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     // -------------------------------------------------------------------------

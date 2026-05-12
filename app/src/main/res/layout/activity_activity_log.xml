@@ -41,18 +41,19 @@
                 android:textColor="@color/slime_text_hint"
                 android:textSize="13sp"/>
 
-            <TextView
-                android:id="@+id/tvFromDateTime"
+            <EditText
+                android:id="@+id/etFromDateTime"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@color/slime_blue_dark"
                 android:textColor="@color/slime_text"
+                android:textColorHint="@color/slime_text_hint"
                 android:textSize="14sp"
-                android:gravity="center"
+                android:hint="@string/log_datetime_hint"
+                android:inputType="datetime"
                 android:padding="8dp"
-                android:clickable="true"
-                android:focusable="true"/>
+                android:singleLine="true"/>
 
         </LinearLayout>
 
@@ -71,18 +72,19 @@
                 android:textColor="@color/slime_text_hint"
                 android:textSize="13sp"/>
 
-            <TextView
-                android:id="@+id/tvToDateTime"
+            <EditText
+                android:id="@+id/etToDateTime"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@color/slime_blue_dark"
                 android:textColor="@color/slime_text"
+                android:textColorHint="@color/slime_text_hint"
                 android:textSize="14sp"
-                android:gravity="center"
+                android:hint="@string/log_datetime_hint"
+                android:inputType="datetime"
                 android:padding="8dp"
-                android:clickable="true"
-                android:focusable="true"/>
+                android:singleLine="true"/>
 
         </LinearLayout>
 
